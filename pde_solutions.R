@@ -59,19 +59,19 @@ PDE_Diffusion_Advection_Reaction_Equation <- function()
 {
   require(ReacTran)
   require(deSolve)
-  N <- 500
-  xgrid <- setup.grid.1D(x.up=0,x.down=1,N=N)
+  N <- 2000
+  xgrid <- setup.grid.1D(x.up=0,x.down=5,N=N)
   x <- xgrid$x.mid
   
   ## specify diffusion and advection constants
   DA.coeff <- 0.001
-  vA.coeff <- 0.04
+  vA.coeff <- 0.85
   
-  DB.coeff <- 0.002
-  vB.coeff <- 0.045
+  DB.coeff <- 0.001
+  vB.coeff <- 0.85
   
   DAB.coeff <- 0.0008
-  vAB.coeff <- 0.035
+  vAB.coeff <- 0.5
   
   k_on <- 0.1
   k_off <- 0.55
@@ -84,11 +84,11 @@ PDE_Diffusion_Advection_Reaction_Equation <- function()
   Yini_A <- cA_0*dnorm(x,mean=0.2,sd=0.01)
   Yini_B <- cB_0*dnorm(x,mean=0.2,sd=0.01)
   Yini_AB <- cAB_0*dnorm(x,mean=0.2,sd=0.01)
-  
+   
   ##Yini <-  sin(pi*x)
   Yini <- c(Yini_A,Yini_B,Yini_AB)
   
-  times <- seq(from=0,to=5,by=0.01)
+ ## times <- seq(from=0,to=7,by=0.01)
   ##print(system.time(out <- ode.1D(y=Yini,times=times,func=Diffusion,parms=NULL,dimens=N)))
   DAR_System <- function(t,Y,parms)
   {
@@ -108,7 +108,7 @@ PDE_Diffusion_Advection_Reaction_Equation <- function()
   
   }
   ## integrate the stuff...
-  times <- seq(from=0,to=1,by=0.001)
+  times <- seq(from=0,to=3,by=0.001)
   print(system.time(out <- ode.1D(y=Yini,times=times,func=DAR_System,parms=NULL,nspec=3,names=c("A","B","AB"),dimens=N))) 
   image(out,grid=xgrid$x.mid,which="AB")
   return(out)
@@ -118,4 +118,20 @@ PDE_Diffusion_Advection_Reaction_Equation <- function()
   #for(i in seq(2,length(times),by=50))
   #  lines(out[i,2:(N+1)],x)
   #image(out,grid=x,mfrow=NULL,ylab="Distance, x",main="Y")
+}
+
+Plot_Conc_Profile_At_Index <- function(out,index,npnts)
+{
+  ymax <- max(out[index,1:(3*npnts)])
+  indices <- seq(from=1,to=npnts,by=1)
+  plot(indices,out[index,1:npnts],type="l",ylim=c(0,ymax),xlim=c(100,npnts))
+  points(indices,out[index,(npnts+1):(2*npnts)],type="l",col="red")
+  points(indices,out[index,(2*npnts+1):(3*npnts)],type="l",col="blue")
+  
+}
+
+Plot_Image_All <- function(out,ntimes,npnts)
+{
+  out_curr <- out[1:ntimes,1:npnts] + out[1:ntimes,(npnts+1):(2*npnts)] + out[1:ntimes,(2*npnts+1):(3*npnts)]
+  image(out_curr)
 }
